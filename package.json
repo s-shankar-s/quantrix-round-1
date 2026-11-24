@@ -1,0 +1,37 @@
+{
+  "name": "quantrix-app-v2",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -H 0.0.0.0 -p 3005",
+    "build": "next build",
+    "start": "next start -H 0.0.0.0 -p 3005",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.119.2",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/qrcode.react": "^1.0.5",
+    "bcryptjs": "^3.0.3",
+    "clsx": "^2.1.1",
+    "googleapis": "^190.0.0",
+    "lucide-react": "^1.78.0",
+    "next": "16.4.6",
+    "qrcode.react": "^4.2.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "recharts": "^3.11.0",
+    "tailwind-merge": "^3.7.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/turbopack": "4.3.3",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.6",
+    "tailwindcss": "4.3.3",
+    "typescript": "^5"
+  }
+}
