@@ -156,6 +156,46 @@ export default function TeamMissionPage() {
     }, 500);
   }, [submission, team?.team_id]);
 
+  // Manual Force-Save handler (gives students total reassurance)
+  const handleManualSave = async () => {
+    const currentAnswers = {
+      q1_target_customer: q1,
+      q2_factor_1: q2f1,
+      q2_factor_2: q2f2,
+      q2_factor_3: q2f3,
+      q3_survey_top_price_range: q3,
+      q4_recommended_price: q4 === '' ? null : Number(q4),
+      q5_price_justification: q5,
+    };
+
+    if (team?.team_id) {
+      try {
+        localStorage.setItem(`quantrix_draft_${team.team_id}`, JSON.stringify(currentAnswers));
+      } catch (_) {}
+    }
+
+    setAutoSaveStatus('Saving...');
+    try {
+      const res = await fetch('/api/submissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'autosave',
+          answers: currentAnswers,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.submission) {
+        setSubmission(data.submission);
+        setAutoSaveStatus('Saved');
+      } else {
+        setAutoSaveStatus('Saved (Local)');
+      }
+    } catch (_) {
+      setAutoSaveStatus('Saved (Local)');
+    }
+  };
+
   // Handle Input Changes with Autosave
   const handleAnswerChange = (field: string, val: string) => {
     const updated = {
@@ -380,11 +420,19 @@ export default function TeamMissionPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-slate-400">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleManualSave}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
+                autoSaveStatus === 'Saved'
+                  ? 'bg-emerald-950/40 text-emerald-300 border-emerald-500/30 hover:bg-emerald-900/50'
+                  : 'bg-amber-950/40 text-amber-300 border-amber-500/30 hover:bg-amber-900/50'
+              }`}
+              title="Click to force-save immediately to server and device"
+            >
               <span className={`w-2 h-2 rounded-full ${autoSaveStatus === 'Saved' ? 'bg-emerald-400' : 'bg-amber-400 animate-ping'}`} />
-              {autoSaveStatus}
-            </div>
+              <span>{autoSaveStatus === 'Saved' ? 'Cloud Synced' : autoSaveStatus}</span>
+            </button>
 
             <SharedTimerDisplay seconds={displaySeconds} status={timerStatus} size="compact" showStatusBadge={false} />
 
