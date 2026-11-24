@@ -204,6 +204,61 @@ function initializeStore() {
     badges_earned: [],
   });
 
+  // Seed 10 Demo Trial Accounts (demo_01 … demo_10)
+  for (let d = 1; d <= 10; d++) {
+    const dNum = d.toString().padStart(2, '0');
+    const demoId = `demo_${dNum}`;
+    const demoHash = bcrypt.hashSync(`Demo${dNum}@2026`, bcrypt.genSaltSync(10));
+    global.__quantrix_users.set(demoId, {
+      id: demoId,
+      username: demoId,
+      password_hash: demoHash,
+      role: 'team',
+      display_name: `Demo Trial Team ${dNum}`,
+      is_active: true,
+      created_at: new Date().toISOString(),
+    });
+    global.__quantrix_teams.set(demoId, {
+      team_id: demoId,
+      team_number: 100 + d,
+      team_name: `Trial Demo ${dNum}`,
+      assigned_profile_id: 999,
+      login_status: 'offline',
+    });
+    global.__quantrix_submissions.set(demoId, {
+      id: `sub_${demoId}`,
+      team_id: demoId,
+      q1_target_customer: '',
+      q2_factor_1: '',
+      q2_factor_2: '',
+      q2_factor_3: '',
+      q3_survey_top_price_range: '',
+      q4_recommended_price: null,
+      q5_price_justification: '',
+      status: 'not_started',
+      is_auto_submitted: false,
+      last_saved_at: new Date().toISOString(),
+      submitted_at: null,
+      edit_permitted: true,
+      edit_approved_by: 'system',
+      edit_reason: 'Trial Sandbox Mode',
+      mission_progress: {
+        mission_01_complete: false,
+        mission_02_complete: false,
+        mission_03_complete: false,
+        mission_04_complete: false,
+        badges_earned: [],
+      },
+    });
+    global.__quantrix_mission_progress.set(demoId, {
+      mission_01_complete: false,
+      mission_02_complete: false,
+      mission_03_complete: false,
+      mission_04_complete: false,
+      badges_earned: [],
+    });
+  }
+
   // Seed Default Judge 1
   const judge1Salt = bcrypt.genSaltSync(10);
   const judge1Hash = bcrypt.hashSync('Judge2026!', judge1Salt);
