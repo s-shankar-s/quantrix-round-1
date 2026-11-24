@@ -1,19 +1,31 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Award, Smartphone, QrCode, Lock, User, KeyRound, ArrowRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlRole = searchParams.get('role');
+  const isIsolatedRole = urlRole === 'team' || urlRole === 'judge' || urlRole === 'admin';
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'team' | 'judge' | 'admin'>('team');
+  const [role, setRole] = useState<'team' | 'judge' | 'admin'>(
+    urlRole === 'judge' ? 'judge' : urlRole === 'admin' ? 'admin' : 'team'
+  );
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [originUrl, setOriginUrl] = useState('');
   const [showQRModal, setShowQRModal] = useState(false);
+
+  useEffect(() => {
+    if (urlRole === 'team' || urlRole === 'judge' || urlRole === 'admin') {
+      setRole(urlRole);
+    }
+  }, [urlRole]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -83,42 +95,62 @@ export default function LoginPage() {
 
         {/* Login Card */}
         <div className="bg-slate-900/95 border border-slate-800 rounded-3xl shadow-2xl p-6 sm:p-8 backdrop-blur-md">
-          {/* Role Tabs without default credentials */}
-          <div className="flex rounded-xl bg-slate-950 p-1 mb-6 border border-slate-800">
-            <button
-              type="button"
-              onClick={() => handleRoleSelect('team')}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                role === 'team'
-                  ? 'bg-teal-600 text-white shadow-lg'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Team Portal
-            </button>
-            <button
-              type="button"
-              onClick={() => handleRoleSelect('judge')}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                role === 'judge'
-                  ? 'bg-sky-600 text-white shadow-lg'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Judges
-            </button>
-            <button
-              type="button"
-              onClick={() => handleRoleSelect('admin')}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                role === 'admin'
-                  ? 'bg-indigo-600 text-white shadow-lg'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Admin Hub
-            </button>
-          </div>
+          {/* Role Tabs - Only show when NOT isolated by specific ?role= param */}
+          {!isIsolatedRole ? (
+            <div className="flex rounded-xl bg-slate-950 p-1 mb-6 border border-slate-800">
+              <button
+                type="button"
+                onClick={() => handleRoleSelect('team')}
+                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+                  role === 'team'
+                    ? 'bg-teal-600 text-white shadow-lg'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Team Portal
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRoleSelect('judge')}
+                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+                  role === 'judge'
+                    ? 'bg-sky-600 text-white shadow-lg'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Judges
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRoleSelect('admin')}
+                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+                  role === 'admin'
+                    ? 'bg-indigo-600 text-white shadow-lg'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Admin Hub
+              </button>
+            </div>
+          ) : (
+            <div className="mb-6 pb-3 border-b border-slate-800 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                  Secure Access Gate
+                </span>
+                <h2 className="text-base font-bold text-white">
+                  {role === 'team'
+                    ? '🎯 Participant Team Portal'
+                    : role === 'judge'
+                    ? '⚖️ Judge Evaluation Portal'
+                    : '🛡️ Admin Hub'}
+                </h2>
+              </div>
+              <span className="px-2.5 py-1 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/30 text-[10px] font-mono font-bold">
+                ISOLATED CONTEXT
+              </span>
+            </div>
+          )}
 
           <form onSubmit={handleLogin} className="space-y-4">
             {error && (
@@ -255,5 +287,19 @@ export default function LoginPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
+          <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

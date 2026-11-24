@@ -309,6 +309,8 @@ export default function TeamMissionPage() {
   const progressPercent = Math.round((completedCount / 4) * 100);
 
   const isLocked = (submission?.status === 'submitted' || submission?.status === 'auto_submitted_at_expiry') && !submission?.edit_permitted;
+  const isTrial = team?.team_id === 'trial' || (team?.team_id?.startsWith('demo_') ?? false);
+  const isWaitingForTimer = timerStatus === 'not_started' && !isTrial;
 
   if (loading) {
     return (
@@ -522,6 +524,35 @@ export default function TeamMissionPage() {
           {/* Mission Action Card */}
           <div className="lg:col-span-7 flex flex-col justify-between">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            {/* Round Not Started Countdown Screen */}
+            {isWaitingForTimer ? (
+              <div className="py-12 px-4 text-center space-y-6">
+                <div className="inline-flex p-4 rounded-3xl bg-teal-500/10 border border-teal-500/30 text-teal-400">
+                  <Lock className="w-10 h-10 animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-white tracking-wide">
+                    ROUND 1 HAS NOT STARTED YET
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-2 max-w-md mx-auto leading-relaxed">
+                    The competition questions and market analysis form are strictly locked until the administrator officially starts the synchronised countdown clock.
+                  </p>
+                </div>
+                <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 inline-block">
+                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">
+                    System Status
+                  </div>
+                  <div className="text-sm font-mono font-bold text-amber-400 flex items-center justify-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                    <span>STANDBY • WAITING FOR HOST TO START</span>
+                  </div>
+                </div>
+                <div className="text-[11px] text-slate-500 max-w-sm mx-auto">
+                  💡 You may study your assigned customer profile on the left. The moment the clock starts, questions will unlock automatically.
+                </div>
+              </div>
+            ) : (
+            <>
             {/* Status locked banner if submitted */}
             {isLocked && (
               <div className="mb-6 p-4 rounded-xl bg-amber-950/40 border border-amber-500/40 text-amber-300 flex items-start gap-3">
@@ -806,10 +837,12 @@ export default function TeamMissionPage() {
                 </div>
               </div>
             )}
+            </>
+            )}
           </div>
 
           {/* Submission Finalize Block */}
-          {!isLocked && (
+          {!isLocked && !isWaitingForTimer && (
             <div className="mt-6 p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
               <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-2">
                 Mission Finalization & Lock-In

@@ -148,6 +148,12 @@ export default function AdminDashboardPage() {
         setActionMessage(`Timer action [${action.toUpperCase()}] executed successfully.`);
         refreshTimer();
         fetchAdminData();
+        if (action === 'end') {
+          // Auto export all competition data immediately upon ending round
+          setTimeout(() => {
+            exportAllDataExcel();
+          }, 600);
+        }
       } else {
         setActionError(data.message || 'Timer operation failed');
       }
@@ -327,6 +333,145 @@ export default function AdminDashboardPage() {
     } catch (e) {
       setActionError('Error toggling publication');
     }
+  };
+
+  const exportAllDataExcel = () => {
+    // Generate multi-sheet XML-based Excel (.xls) containing all competition data
+    const escapeXml = (val: any) => {
+      if (val === null || val === undefined) return '';
+      return String(val)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+    };
+
+    const buildWorksheetXml = (sheetName: string, headers: string[], rows: (string | number | null | undefined)[][]) => {
+      let xml = `  <Worksheet ss:Name="${escapeXml(sheetName)}">\n    <Table>\n`;
+      // Header row
+      xml += '      <Row ss:StyleID="HeaderStyle">\n';
+      headers.forEach(h => {
+        xml += `        <Cell><Data ss:Type="String">${escapeXml(h)}</Data></Cell>\n`;
+      });
+      xml += '      </Row>\n';
+      // Data rows
+      rows.forEach(r => {
+        xml += '      <Row>\n';
+        r.forEach(cell => {
+          const isNum = typeof cell === 'number' && !isNaN(cell);
+          const type = isNum ? 'Number' : 'String';
+          xml += `        <Cell><Data ss:Type="${type}">${escapeXml(cell)}</Data></Cell>\n`;
+        });
+        xml += '      </Row>\n';
+      });
+      xml += '    </Table>\n  </Worksheet>\n';
+      return xml;
+    };
+
+    // Sheet 1: Teams & Credentials
+    const teamsHeaders = ['Team ID', 'Team Name', 'Team Number', 'Assigned Profile ID', 'Profile Name', 'Default Password', 'Login Status'];
+    const teamsRows = teams.map(t => {
+      const prof = profiles.find(p => p.id === t.assigned_profile_id);
+      const num = t.team_number.toString().padStart(2, '0');
+      return [
+        t.team_id,
+        t.team_name,
+        t.team_number,
+        t.assigned_profile_id,
+        prof?.customer_profile || '',
+        t.team_id.startsWith('demo_') ? `Demo${num}@2026` : t.team_id === 'trial' ? 'Trial2026!' : `TeamPass@${num}`,
+        t.login_status
+      ];
+    });
+
+    // Sheet 2: Submissions
+    const subHeaders = [
+      'Team ID', 'Team Name', 'Profile ID', 'Assigned Profile', 'Status', 'Submitted At (IST)',
+      'Auto-Submitted', 'Q1 Target Customer', 'Q2 Factor 1', 'Q2 Factor 2', 'Q2 Factor 3',
+      'Q3 Top Price Range', 'Q4 Recommended Price', 'Q5 Justification'
+    ];
+    const subRows = teams.map(t => {
+      const sub = submissions.find(s => s.team_id === t.team_id);
+      const prof = profiles.find(p => p.id === t.assigned_profile_id);
+      return [
+        t.team_id,
+        t.team_name,
+        t.assigned_profile_id,
+        prof?.customer_profile || '',
+        sub?.status || 'not_started',
+        formatIST(sub?.submitted_at),
+        sub?.is_auto_submitted ? 'YES' : 'NO',
+        sub?.q1_target_customer || '',
+        sub?.q2_factor_1 || '',
+        sub?.q2_factor_2 || '',
+        sub?.q2_factor_3 || '',
+        sub?.q3_survey_top_price_range || '',
+        sub?.q4_recommended_price ?? '',
+        sub?.q5_price_justification || ''
+      ];
+    });
+
+    // Sheet 3: Final Scores & Rankings
+    const scoreHeaders = [
+      'Rank', 'Team ID', 'Team Name', 'Assigned Profile', 'Submission Status',
+      'Customer ID Score (20)', 'Survey Score (30)', 'Price Rec Score (30)',
+      'Justification Score (20)', 'Total Score (100)', 'Evaluated Status'
+    ];
+    const scoreRows = scores.map(s => [
+      s.rank || '—',
+      s.team_id,
+      s.team_name,
+      s.customer_profile_name,
+      s.submission_status,
+      s.criterion_1,
+      s.criterion_2,
+      s.criterion_3,
+      s.criterion_4,
+      s.total_score,
+      s.is_evaluated ? 'Evaluated' : 'Pending'
+    ]);
+
+    // Sheet 4: Integrity / Anti-AI Security Logs
+    const intHeaders = ['Event ID', 'Team ID', 'Event Type', 'Recorded At (IST)', 'Details'];
+    const intRows = (integrityLogs || []).map(e => [
+      e.id,
+      e.team_id,
+      e.event_type,
+      formatIST(e.recorded_at),
+      e.details || ''
+    ]);
+
+    // Combine into Excel XML Workbook
+    const workbookXml = `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <Styles>
+  <Style ss:ID="HeaderStyle">
+   <Font ss:Bold="1" ss:Color="#FFFFFF"/>
+   <Interior ss:Color="#1E293B" ss:Pattern="Solid"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+  </Style>
+ </Styles>
+${buildWorksheetXml('1. Teams & Logins', teamsHeaders, teamsRows)}
+${buildWorksheetXml('2. Submissions', subHeaders, subRows)}
+${buildWorksheetXml('3. Final Scores', scoreHeaders, scoreRows)}
+${buildWorksheetXml('4. Anti-AI Security Logs', intHeaders, intRows)}
+</Workbook>`;
+
+    const blob = new Blob([workbookXml], { type: 'application/vnd.ms-excel;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Quantrix_Round1_COMPLETE_DATA_${new Date().toISOString().slice(0, 10)}.xls`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setActionMessage('All event data successfully downloaded to Excel (.xls)!');
   };
 
   // CSV Export Engine
@@ -596,6 +741,15 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={exportAllDataExcel}
+              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md hover:shadow-emerald-500/20 transition"
+              title="Download full workbook (.xls) with all 4 sheets"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Export All to Excel (.xls)</span>
+            </button>
+
             <div className="flex items-center gap-2 bg-slate-800/90 px-3 py-1.5 rounded-lg border border-slate-700 text-xs">
               <span className="text-slate-400">Clock:</span>
               <span className="font-mono font-bold text-sky-400">
