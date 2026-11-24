@@ -424,7 +424,8 @@ export const serverStore = {
         timer.status = 'completed';
         timer.remaining_seconds_on_pause = 0;
         global.__quantrix_timer = { ...timer };
-        serverStore.lockAllSubmissionsAtExpiry();
+        // NOTE: Server deadline passing intentionally does NOT trigger auto-submission.
+        // Submissions remain in their existing status (draft or submitted) without forced auto-submit.
       }
     }
     return timer;
