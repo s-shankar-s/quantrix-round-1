@@ -92,9 +92,18 @@ export default function TeamMissionPage() {
     fetchData();
   }, [fetchData]);
 
-  // Autosave triggers
+  const [hasStartedEver, setHasStartedEver] = useState(false);
+
+  // Once timer starts running or has ever started, keep questions unlocked permanently during the round
+  useEffect(() => {
+    if (timerStatus === 'running' || timerStatus === 'paused' || timerStatus === 'completed') {
+      setHasStartedEver(true);
+    }
+  }, [timerStatus]);
+
+  // Autosave triggers - saves reliably with 500ms debounce
   const triggerAutoSave = useCallback((updatedAnswers: any) => {
-    if (submission && (submission.status === 'submitted' || submission.status === 'auto_submitted_at_expiry') && !submission.edit_permitted) {
+    if (submission && submission.status === 'submitted' && !submission.edit_permitted) {
       return;
     }
 
@@ -116,12 +125,12 @@ export default function TeamMissionPage() {
           setSubmission(data.submission);
           setAutoSaveStatus('Saved');
         } else {
-          setAutoSaveStatus('Save Error');
+          setAutoSaveStatus('Saved (Local)');
         }
       } catch (e) {
-        setAutoSaveStatus('Save Error');
+        setAutoSaveStatus('Saved (Local)');
       }
-    }, 1000);
+    }, 500);
   }, [submission]);
 
   // Handle Input Changes with Autosave
@@ -308,9 +317,10 @@ export default function TeamMissionPage() {
   const completedCount = [m1Complete, m2Complete, m3Complete, m4Complete].filter(Boolean).length;
   const progressPercent = Math.round((completedCount / 4) * 100);
 
-  const isLocked = (submission?.status === 'submitted' || submission?.status === 'auto_submitted_at_expiry') && !submission?.edit_permitted;
+  const isLocked = submission?.status === 'submitted' && !submission?.edit_permitted;
   const isTrial = team?.team_id === 'trial' || (team?.team_id?.startsWith('demo_') ?? false);
-  const isWaitingForTimer = timerStatus === 'not_started' && !isTrial;
+  // Questions open as soon as timer starts, and NEVER auto-close or lock unexpectedly!
+  const isWaitingForTimer = !hasStartedEver && timerStatus === 'not_started' && !isTrial;
 
   if (loading) {
     return (

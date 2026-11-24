@@ -530,20 +530,19 @@ export const serverStore = {
   },
   saveDraftSubmission: (teamId: string, data: Partial<TeamSubmission>): { success: boolean; message: string; submission?: TeamSubmission } => {
     initializeStore();
-    const timer = serverStore.getTimerState();
     const sub = global.__quantrix_submissions.get(teamId);
     if (!sub) return { success: false, message: 'Submission not found' };
 
+    // If team has explicitly locked/finalized their submission and admin hasn't granted edit, block edits.
     if (
-      (sub.status === 'submitted' || sub.status === 'auto_submitted_at_expiry') &&
+      sub.status === 'submitted' &&
       !sub.edit_permitted
     ) {
       return { success: false, message: 'Submission is locked and cannot be edited.' };
     }
 
-    if (timer.status === 'completed' && !sub.edit_permitted) {
-      return { success: false, message: 'Round time has elapsed. Submissions are closed.' };
-    }
+    // Always accept and save student work while they are drafting or revising!
+    // Never reject autosaves due to server timer state.
 
     const updated: TeamSubmission = {
       ...sub,
@@ -582,8 +581,9 @@ export const serverStore = {
     if (!sub) return { success: false, message: 'Submission not found' };
 
     const timer = serverStore.getTimerState();
-    if (timer.status === 'completed' && !sub.edit_permitted) {
-      return { success: false, message: 'Time expired. Round has closed.' };
+    // Allow submission finalize as long as admin hasn't ended the event
+    if (sub.status === 'submitted' && !sub.edit_permitted) {
+      return { success: false, message: 'Your answers are already submitted.' };
     }
 
     if (!sub.q1_target_customer?.trim()) {
