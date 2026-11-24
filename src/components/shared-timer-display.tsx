@@ -29,30 +29,30 @@ export const SharedTimerDisplay: React.FC<SharedTimerDisplayProps> = ({
     switch (status) {
       case 'running':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300 animate-pulse">
-            <Play className="w-3 h-3 fill-emerald-600 text-emerald-600" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-200 border border-emerald-500/50 animate-pulse">
+            <Play className="w-3 h-3 fill-emerald-300 text-emerald-300" />
             LIVE ROUND
           </span>
         );
       case 'paused':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-300">
-            <Pause className="w-3 h-3 fill-amber-600 text-amber-600" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-200 border border-amber-500/50">
+            <Pause className="w-3 h-3 fill-amber-300 text-amber-300" />
             TIMER PAUSED
           </span>
         );
       case 'completed':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-300">
-            <CheckCircle2 className="w-3 h-3 text-rose-600" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/20 text-rose-200 border border-rose-500/50">
+            <CheckCircle2 className="w-3 h-3 text-rose-300" />
             ROUND CONCLUDED
           </span>
         );
       case 'not_started':
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-300">
-            <Clock className="w-3 h-3 text-slate-500" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-500/20 text-slate-200 border border-slate-500/50">
+            <Clock className="w-3 h-3 text-slate-300" />
             AWAITING START
           </span>
         );
@@ -60,10 +60,10 @@ export const SharedTimerDisplay: React.FC<SharedTimerDisplayProps> = ({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-3 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-sm">
+    <div className="flex flex-col items-center justify-center p-3 bg-slate-900/95 backdrop-blur border border-slate-700 rounded-xl shadow-lg">
       <div className="flex items-center gap-2 mb-1">
-        <Clock className="w-4 h-4 text-slate-500" />
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+        <Clock className="w-4 h-4 text-slate-300" />
+        <span className="text-xs font-semibold uppercase tracking-wider text-slate-300">
           Official Round Clock
         </span>
       </div>
@@ -71,12 +71,12 @@ export const SharedTimerDisplay: React.FC<SharedTimerDisplayProps> = ({
       <div
         className={`font-mono transition-colors ${sizeClasses} ${
           isZero
-            ? 'text-rose-600'
+            ? 'text-rose-400'
             : isUrgent
-            ? 'text-amber-600 animate-pulse'
+            ? 'text-amber-300 animate-pulse'
             : status === 'running'
-            ? 'text-blue-900'
-            : 'text-slate-700'
+            ? 'text-emerald-300'
+            : 'text-slate-100'
         }`}
       >
         {formatSecondsToTimer(seconds)}

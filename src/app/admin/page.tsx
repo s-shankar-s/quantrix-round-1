@@ -43,6 +43,7 @@ import {
   Sliders,
   Settings,
   Scale,
+  Bot,
   Activity,
   UserCheck,
   Edit,
@@ -100,6 +101,10 @@ export default function AdminDashboardPage() {
   // Timer custom duration
   const [customTimerMinutes, setCustomTimerMinutes] = useState(12);
 
+  // AI Evaluation state
+  const [aiEvalLoading, setAiEvalLoading] = useState(false);
+  const [aiEvalMessage, setAiEvalMessage] = useState('');
+
   const fetchAdminData = useCallback(async () => {
     try {
       const res = await fetch('/api/admin', { cache: 'no-store' });
@@ -132,6 +137,32 @@ export default function AdminDashboardPage() {
     const interval = setInterval(fetchAdminData, 4000);
     return () => clearInterval(interval);
   }, [fetchAdminData]);
+
+  const handleRunAiEvaluation = async () => {
+    if (!confirm('Run AI auto-evaluation for all teams? AI scores will be recorded under judge "ai_evaluator" as a baseline reference.')) {
+      return;
+    }
+    setAiEvalLoading(true);
+    setAiEvalMessage('');
+    try {
+      const res = await fetch('/api/ai-evaluate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAiEvalMessage(`Auto-evaluated ${data.evaluated_count} team(s) successfully.`);
+        fetchAdminData();
+      } else {
+        setAiEvalMessage(data.message || 'AI evaluation failed');
+      }
+    } catch (e: any) {
+      setAiEvalMessage(e.message || 'Error running AI evaluation');
+    } finally {
+      setAiEvalLoading(false);
+    }
+  };
 
   // Central Timer Controls
   const handleTimerAction = async (action: 'start' | 'pause' | 'resume' | 'end' | 'reset') => {
@@ -1630,7 +1661,17 @@ ${buildWorksheetXml('4. Anti-AI Security Logs', intHeaders, intRows)}
                 </p>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={handleRunAiEvaluation}
+                  disabled={aiEvalLoading}
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow"
+                  title="Run AI Rubric Scoring for Reference"
+                >
+                  <Bot className="w-4 h-4" />
+                  <span>{aiEvalLoading ? 'Scoring via AI...' : 'Run AI Auto-Evaluation'}</span>
+                </button>
+
                 <button
                   onClick={exportScoresCSV}
                   className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 border border-slate-700 shadow"

@@ -37,15 +37,24 @@ export function useRealtimeTimer(): UseRealtimeTimerReturn {
 
   const computeDisplay = (currentTimer: RoundTimerState) => {
     if (currentTimer.status === 'not_started') {
-      setDisplaySeconds(currentTimer.duration_seconds);
+      setDisplaySeconds(currentTimer.duration_seconds || 720);
     } else if (currentTimer.status === 'paused') {
       setDisplaySeconds(currentTimer.remaining_seconds_on_pause);
     } else if (currentTimer.status === 'completed') {
       setDisplaySeconds(0);
     } else if (currentTimer.status === 'running' && currentTimer.deadline_at) {
-      const now = Date.now();
-      const deadline = new Date(currentTimer.deadline_at).getTime();
-      const left = Math.max(0, Math.round((deadline - now) / 1000));
+      // Calculate remaining time against server's clock reference if available to neutralize client clock skews
+      let left = 0;
+      if (currentTimer.server_time_reference) {
+        const serverRef = new Date(currentTimer.server_time_reference).getTime();
+        const deadline = new Date(currentTimer.deadline_at).getTime();
+        left = Math.max(0, Math.round((deadline - serverRef) / 1000));
+      } else {
+        const now = Date.now();
+        const deadline = new Date(currentTimer.deadline_at).getTime();
+        left = Math.max(0, Math.round((deadline - now) / 1000));
+      }
+
       setDisplaySeconds(left);
       if (left <= 0 && currentTimer.status === 'running') {
         // Trigger sync to register completion
@@ -67,11 +76,8 @@ export function useRealtimeTimer(): UseRealtimeTimerReturn {
   // Client-side high-resolution tick (every 1 second)
   useEffect(() => {
     const tickInterval = setInterval(() => {
-      if (timerRef.current && timerRef.current.status === 'running' && timerRef.current.deadline_at) {
-        const now = Date.now();
-        const deadline = new Date(timerRef.current.deadline_at).getTime();
-        const left = Math.max(0, Math.round((deadline - now) / 1000));
-        setDisplaySeconds(left);
+      if (timerRef.current && timerRef.current.status === 'running') {
+        setDisplaySeconds((prev) => Math.max(0, prev - 1));
       }
     }, 1000);
 
@@ -102,7 +108,10 @@ export function useRealtimeTimer(): UseRealtimeTimerReturn {
     };
   }, []);
 
-  const isExpired = (timer?.status === 'completed' || displaySeconds <= 0) && timer?.status !== 'not_started';
+  // Only mark as expired when server explicitly reports 'completed'.
+  // Do NOT derive expiry from displaySeconds alone — the initial value is 720
+  // which counts down immediately in the tick, causing premature "Round Concluded".
+  const isExpired = timer?.status === 'completed';
 
   return {
     timer,
