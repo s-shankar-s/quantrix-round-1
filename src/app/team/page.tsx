@@ -70,15 +70,31 @@ export default function TeamMissionPage() {
       if (data.success) {
         setTeam(data.team);
         setProfile(data.profile);
+        
+        // Check if there is cached work in localStorage in case of network drops
+        let localBackup: any = null;
+        try {
+          const raw = localStorage.getItem(`quantrix_draft_${data.team?.team_id}`);
+          if (raw) localBackup = JSON.parse(raw);
+        } catch (_) {}
+
         if (data.submission) {
           setSubmission(data.submission);
-          setQ1(data.submission.q1_target_customer || '');
-          setQ2f1(data.submission.q2_factor_1 || '');
-          setQ2f2(data.submission.q2_factor_2 || '');
-          setQ2f3(data.submission.q2_factor_3 || '');
-          setQ3(data.submission.q3_survey_top_price_range || '');
-          setQ4(data.submission.q4_recommended_price?.toString() || '');
-          setQ5(data.submission.q5_price_justification || '');
+          setQ1(data.submission.q1_target_customer || localBackup?.q1_target_customer || '');
+          setQ2f1(data.submission.q2_factor_1 || localBackup?.q2_factor_1 || '');
+          setQ2f2(data.submission.q2_factor_2 || localBackup?.q2_factor_2 || '');
+          setQ2f3(data.submission.q2_factor_3 || localBackup?.q2_factor_3 || '');
+          setQ3(data.submission.q3_survey_top_price_range || localBackup?.q3_survey_top_price_range || '');
+          setQ4(data.submission.q4_recommended_price?.toString() || localBackup?.q4_recommended_price?.toString() || '');
+          setQ5(data.submission.q5_price_justification || localBackup?.q5_price_justification || '');
+        } else if (localBackup) {
+          setQ1(localBackup.q1_target_customer || '');
+          setQ2f1(localBackup.q2_factor_1 || '');
+          setQ2f2(localBackup.q2_factor_2 || '');
+          setQ2f3(localBackup.q2_factor_3 || '');
+          setQ3(localBackup.q3_survey_top_price_range || '');
+          setQ4(localBackup.q4_recommended_price?.toString() || '');
+          setQ5(localBackup.q5_price_justification || '');
         }
       }
     } catch (e) {
@@ -101,10 +117,17 @@ export default function TeamMissionPage() {
     }
   }, [timerStatus]);
 
-  // Autosave triggers - saves reliably with 500ms debounce
+  // Autosave triggers - saves reliably with 500ms debounce + instantaneous localStorage redundancy
   const triggerAutoSave = useCallback((updatedAnswers: any) => {
     if (submission && submission.status === 'submitted' && !submission.edit_permitted) {
       return;
+    }
+
+    // Instant local backup so students NEVER lose a keystroke under poor connectivity
+    if (team?.team_id) {
+      try {
+        localStorage.setItem(`quantrix_draft_${team.team_id}`, JSON.stringify(updatedAnswers));
+      } catch (_) {}
     }
 
     setAutoSaveStatus('Saving...');
@@ -131,7 +154,7 @@ export default function TeamMissionPage() {
         setAutoSaveStatus('Saved (Local)');
       }
     }, 500);
-  }, [submission]);
+  }, [submission, team?.team_id]);
 
   // Handle Input Changes with Autosave
   const handleAnswerChange = (field: string, val: string) => {

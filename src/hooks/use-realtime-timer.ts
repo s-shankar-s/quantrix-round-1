@@ -88,12 +88,13 @@ export function useRealtimeTimer(): UseRealtimeTimerReturn {
     }
   }, []);
 
-  // Initial fetch and periodic resynchronisation (every 3 seconds)
+  // Initial fetch and periodic resynchronisation (every 5 seconds with random jitter to distribute 80 concurrent visitors)
   useEffect(() => {
     syncFromServer();
+    const jitter = Math.floor(Math.random() * 1000);
     const pollInterval = setInterval(() => {
       syncFromServer();
-    }, 3000);
+    }, 5000 + jitter);
 
     return () => clearInterval(pollInterval);
   }, [syncFromServer]);
