@@ -1804,6 +1804,158 @@ ${buildWorksheetXml('4. Anti-AI Security Logs', intHeaders, intRows)}
                   </div>
                 );
               })()}
+              {/* Comprehensive Per-Team Telemetry, Progress & Penalty Table */}
+              <div className="mt-6 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+                <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-teal-400" />
+                      Team-by-Team Assessment Telemetry & Penalty Ledger
+                    </h4>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Live status of all participant teams: answered questions, telemetry violation counts, score penalties, and reset overrides.
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono text-slate-400 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
+                    {teams.length} Teams Registered
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs text-slate-300">
+                    <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                      <tr>
+                        <th className="p-3">Team</th>
+                        <th className="p-3">Progress / Done</th>
+                        <th className="p-3">Status</th>
+                        <th className="p-3 text-center">AI Suspect</th>
+                        <th className="p-3 text-center">Tab Switches</th>
+                        <th className="p-3 text-center">Window Blurs</th>
+                        <th className="p-3 text-center">Paste Attempts</th>
+                        <th className="p-3 text-center">Rapid Bursts</th>
+                        <th className="p-3">Penalty Applied</th>
+                        <th className="p-3 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800 font-mono">
+                      {teams.map((t) => {
+                        const sub = submissions.find((s) => s.team_id === t.team_id);
+                        const teamLogs = integrityLogs.filter((l) => l.team_id === t.team_id);
+                        const scoreInfo = scores.find((sc) => sc.team_id === t.team_id);
+
+                        const aiCount = teamLogs.filter((l) => l.event_type === 'ai_suspect_phrase').length;
+                        const tabCount = teamLogs.filter((l) => l.event_type === 'tab_switch').length;
+                        const blurCount = teamLogs.filter((l) => l.event_type === 'window_blur').length;
+                        const pasteCount = teamLogs.filter((l) => l.event_type === 'paste_attempt').length;
+                        const burstCount = teamLogs.filter((l) => l.event_type === 'rapid_typing_burst').length;
+
+                        // Check completed question fields
+                        const q1Done = !!(sub?.q1_target_customer && sub.q1_target_customer.trim().length > 0);
+                        const q2Done = !!(sub?.q2_factor_1 && sub?.q2_factor_2 && sub?.q2_factor_3);
+                        const q3Done = !!(sub?.q3_survey_top_price_range);
+                        const q4Done = !!(sub?.q4_recommended_price && sub.q4_recommended_price > 0);
+                        const q5Done = !!(sub?.q5_price_justification && sub.q5_price_justification.trim().length > 0);
+                        const completedMissions = [q1Done && q2Done, q3Done, q4Done, q5Done].filter(Boolean).length;
+
+                        const isPenaltyActive = scoreInfo?.ai_penalty_applied;
+                        const penaltyPoints = scoreInfo?.ai_penalty_points || 0;
+
+                        return (
+                          <tr key={t.team_id} className="hover:bg-slate-850/60 transition">
+                            <td className="p-3">
+                              <div className="font-bold text-white text-xs font-sans">{t.team_name}</div>
+                              <span className="text-[10px] text-teal-400 font-mono">{t.team_id}</span>
+                            </td>
+                            <td className="p-3">
+                              <div className="flex items-center gap-2">
+                                <div className="w-16 bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                                  <div
+                                    className={`h-full ${
+                                      completedMissions === 4
+                                        ? 'bg-emerald-400'
+                                        : completedMissions > 0
+                                        ? 'bg-sky-400'
+                                        : 'bg-slate-700'
+                                    }`}
+                                    style={{ width: `${(completedMissions / 4) * 100}%` }}
+                                  />
+                                </div>
+                                <span className="text-[11px] font-bold text-slate-200">
+                                  {completedMissions}/4 Done
+                                </span>
+                              </div>
+                            </td>
+                            <td className="p-3">
+                              <span
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                  sub?.status === 'submitted' || sub?.status === 'revised_and_resubmitted'
+                                    ? 'bg-emerald-500/20 text-emerald-300'
+                                    : sub?.status === 'auto_submitted_at_expiry'
+                                    ? 'bg-purple-500/20 text-purple-300'
+                                    : sub?.status === 'draft_in_progress'
+                                    ? 'bg-sky-500/20 text-sky-300'
+                                    : 'bg-slate-800 text-slate-400'
+                                }`}
+                              >
+                                {sub?.status ? sub.status.replace(/_/g, ' ').toUpperCase() : 'NOT STARTED'}
+                              </span>
+                            </td>
+                            <td className={`p-3 text-center ${aiCount > 0 ? 'text-rose-400 font-bold bg-rose-950/20' : 'text-slate-600'}`}>
+                              {aiCount}
+                            </td>
+                            <td className={`p-3 text-center ${tabCount > 0 ? 'text-amber-400 font-bold' : 'text-slate-600'}`}>
+                              {tabCount}
+                            </td>
+                            <td className={`p-3 text-center ${blurCount > 0 ? 'text-yellow-400' : 'text-slate-600'}`}>
+                              {blurCount}
+                            </td>
+                            <td className={`p-3 text-center ${pasteCount > 0 ? 'text-sky-400' : 'text-slate-600'}`}>
+                              {pasteCount}
+                            </td>
+                            <td className={`p-3 text-center ${burstCount > 0 ? 'text-teal-400' : 'text-slate-600'}`}>
+                              {burstCount}
+                            </td>
+                            <td className="p-3">
+                              {isPenaltyActive ? (
+                                <span className="px-2 py-0.5 rounded bg-rose-900/60 border border-rose-700 text-rose-300 text-[10px] font-bold">
+                                  -{penaltyPoints} pts
+                                </span>
+                              ) : (
+                                <span className="text-[10px] text-slate-500">None (0)</span>
+                              )}
+                            </td>
+                            <td className="p-3 text-right">
+                              {aiCount > 0 ? (
+                                <button
+                                  onClick={async () => {
+                                    if (confirm(`Reset and forgive AI negative score penalty for Team ${t.team_id}?`)) {
+                                      await fetch('/api/admin', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ action: 'reset_ai_penalty', targetId: t.team_id }),
+                                      });
+                                      fetchAdminData();
+                                    }
+                                  }}
+                                  className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition ${
+                                    isPenaltyActive
+                                      ? 'bg-rose-700 hover:bg-rose-600 text-white shadow'
+                                      : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                                  }`}
+                                >
+                                  {isPenaltyActive ? 'Reset Penalty' : 'Forgiven'}
+                                </button>
+                              ) : (
+                                <span className="text-[10px] text-slate-600">—</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
