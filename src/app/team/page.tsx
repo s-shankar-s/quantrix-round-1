@@ -366,136 +366,138 @@ export default function TeamMissionPage() {
         </div>
       </header>
 
-      {/* Mission Progress HUD */}
-      <section className="bg-slate-900 border-b border-slate-800 px-4 py-4 sm:px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
-          {/* Mission Tabs */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 flex-1">
-            <button
-              onClick={() => setActiveMission('mission_01')}
-              className={`p-3 rounded-xl border text-left transition flex items-center justify-between ${
-                activeMission === 'mission_01'
-                  ? 'bg-teal-500/10 border-teal-500/50 text-white'
-                  : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:border-slate-700'
-              }`}
-            >
-              <div className="truncate">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Mission 01</div>
-                <div className="text-xs font-bold text-slate-200 truncate">Decode Customer</div>
-              </div>
-              {m1Complete ? (
-                <CheckCircle2 className="w-4 h-4 text-teal-400 shrink-0 ml-2" />
-              ) : (
-                <div className="w-2 h-2 rounded-full bg-slate-700 shrink-0 ml-2" />
-              )}
-            </button>
-
-            <button
-              onClick={() => setActiveMission('mission_02')}
-              className={`p-3 rounded-xl border text-left transition flex items-center justify-between ${
-                activeMission === 'mission_02'
-                  ? 'bg-sky-500/10 border-sky-500/50 text-white'
-                  : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:border-slate-700'
-              }`}
-            >
-              <div className="truncate">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Mission 02</div>
-                <div className="text-xs font-bold text-slate-200 truncate">Read Market</div>
-              </div>
-              {m2Complete ? (
-                <CheckCircle2 className="w-4 h-4 text-sky-400 shrink-0 ml-2" />
-              ) : (
-                <div className="w-2 h-2 rounded-full bg-slate-700 shrink-0 ml-2" />
-              )}
-            </button>
-
-            <button
-              onClick={() => setActiveMission('mission_03')}
-              className={`p-3 rounded-xl border text-left transition flex items-center justify-between ${
-                activeMission === 'mission_03'
-                  ? 'bg-amber-500/10 border-amber-500/50 text-white'
-                  : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:border-slate-700'
-              }`}
-            >
-              <div className="truncate">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Mission 03</div>
-                <div className="text-xs font-bold text-slate-200 truncate">Set Your Price</div>
-              </div>
-              {m3Complete ? (
-                <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0 ml-2" />
-              ) : (
-                <div className="w-2 h-2 rounded-full bg-slate-700 shrink-0 ml-2" />
-              )}
-            </button>
-
-            <button
-              onClick={() => setActiveMission('mission_04')}
-              className={`p-3 rounded-xl border text-left transition flex items-center justify-between ${
-                activeMission === 'mission_04'
-                  ? 'bg-purple-500/10 border-purple-500/50 text-white'
-                  : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:border-slate-700'
-              }`}
-            >
-              <div className="truncate">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Mission 04</div>
-                <div className="text-xs font-bold text-slate-200 truncate">Defend Decision</div>
-              </div>
-              {m4Complete ? (
-                <CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0 ml-2" />
-              ) : (
-                <div className="w-2 h-2 rounded-full bg-slate-700 shrink-0 ml-2" />
-              )}
-            </button>
-          </div>
-
-          {/* Badges Earned Ribbon */}
-          <div className="flex items-center gap-2 p-2 bg-slate-950/60 rounded-xl border border-slate-800">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-2">Badges:</span>
-            <div className="flex items-center gap-1.5">
-              <span
-                title="Customer Detective (Mission 1 Complete)"
-                className={`px-2 py-1 rounded-md text-[10px] font-bold border transition ${
-                  m1Complete
-                    ? 'bg-teal-500/20 text-teal-300 border-teal-500/50'
-                    : 'bg-slate-900 text-slate-600 border-slate-800 opacity-40'
+      {/* Mission Progress HUD - Only show when round has officially begun */}
+      {!isWaitingForTimer && (
+        <section className="bg-slate-900 border-b border-slate-800 px-4 py-4 sm:px-6">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+            {/* Mission Tabs */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 flex-1">
+              <button
+                onClick={() => setActiveMission('mission_01')}
+                className={`p-3 rounded-xl border text-left transition flex items-center justify-between ${
+                  activeMission === 'mission_01'
+                    ? 'bg-teal-500/10 border-teal-500/50 text-white'
+                    : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:border-slate-700'
                 }`}
               >
-                Detective
-              </span>
-              <span
-                title="Data Decoder (Mission 2 Complete)"
-                className={`px-2 py-1 rounded-md text-[10px] font-bold border transition ${
-                  m2Complete
-                    ? 'bg-sky-500/20 text-sky-300 border-sky-500/50'
-                    : 'bg-slate-900 text-slate-600 border-slate-800 opacity-40'
+                <div className="truncate">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Mission 01</div>
+                  <div className="text-xs font-bold text-slate-200 truncate">Decode Customer</div>
+                </div>
+                {m1Complete ? (
+                  <CheckCircle2 className="w-4 h-4 text-teal-400 shrink-0 ml-2" />
+                ) : (
+                  <div className="w-2 h-2 rounded-full bg-slate-700 shrink-0 ml-2" />
+                )}
+              </button>
+
+              <button
+                onClick={() => setActiveMission('mission_02')}
+                className={`p-3 rounded-xl border text-left transition flex items-center justify-between ${
+                  activeMission === 'mission_02'
+                    ? 'bg-sky-500/10 border-sky-500/50 text-white'
+                    : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:border-slate-700'
                 }`}
               >
-                Decoder
-              </span>
-              <span
-                title="Pricing Strategist (Mission 3 Complete)"
-                className={`px-2 py-1 rounded-md text-[10px] font-bold border transition ${
-                  m3Complete
-                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/50'
-                    : 'bg-slate-900 text-slate-600 border-slate-800 opacity-40'
+                <div className="truncate">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Mission 02</div>
+                  <div className="text-xs font-bold text-slate-200 truncate">Read Market</div>
+                </div>
+                {m2Complete ? (
+                  <CheckCircle2 className="w-4 h-4 text-sky-400 shrink-0 ml-2" />
+                ) : (
+                  <div className="w-2 h-2 rounded-full bg-slate-700 shrink-0 ml-2" />
+                )}
+              </button>
+
+              <button
+                onClick={() => setActiveMission('mission_03')}
+                className={`p-3 rounded-xl border text-left transition flex items-center justify-between ${
+                  activeMission === 'mission_03'
+                    ? 'bg-amber-500/10 border-amber-500/50 text-white'
+                    : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:border-slate-700'
                 }`}
               >
-                Strategist
-              </span>
-              <span
-                title="Business Thinker (Mission 4 Complete)"
-                className={`px-2 py-1 rounded-md text-[10px] font-bold border transition ${
-                  m4Complete
-                    ? 'bg-purple-500/20 text-purple-300 border-purple-500/50'
-                    : 'bg-slate-900 text-slate-600 border-slate-800 opacity-40'
+                <div className="truncate">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Mission 03</div>
+                  <div className="text-xs font-bold text-slate-200 truncate">Set Your Price</div>
+                </div>
+                {m3Complete ? (
+                  <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0 ml-2" />
+                ) : (
+                  <div className="w-2 h-2 rounded-full bg-slate-700 shrink-0 ml-2" />
+                )}
+              </button>
+
+              <button
+                onClick={() => setActiveMission('mission_04')}
+                className={`p-3 rounded-xl border text-left transition flex items-center justify-between ${
+                  activeMission === 'mission_04'
+                    ? 'bg-purple-500/10 border-purple-500/50 text-white'
+                    : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:border-slate-700'
                 }`}
               >
-                Thinker
-              </span>
+                <div className="truncate">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Mission 04</div>
+                  <div className="text-xs font-bold text-slate-200 truncate">Defend Decision</div>
+                </div>
+                {m4Complete ? (
+                  <CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0 ml-2" />
+                ) : (
+                  <div className="w-2 h-2 rounded-full bg-slate-700 shrink-0 ml-2" />
+                )}
+              </button>
+            </div>
+
+            {/* Badges Earned Ribbon */}
+            <div className="flex items-center gap-2 p-2 bg-slate-950/60 rounded-xl border border-slate-800">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-2">Badges:</span>
+              <div className="flex items-center gap-1.5">
+                <span
+                  title="Customer Detective (Mission 1 Complete)"
+                  className={`px-2 py-1 rounded-md text-[10px] font-bold border transition ${
+                    m1Complete
+                      ? 'bg-teal-500/20 text-teal-300 border-teal-500/50'
+                      : 'bg-slate-900 text-slate-600 border-slate-800 opacity-40'
+                  }`}
+                >
+                  Detective
+                </span>
+                <span
+                  title="Data Decoder (Mission 2 Complete)"
+                  className={`px-2 py-1 rounded-md text-[10px] font-bold border transition ${
+                    m2Complete
+                      ? 'bg-sky-500/20 text-sky-300 border-sky-500/50'
+                      : 'bg-slate-900 text-slate-600 border-slate-800 opacity-40'
+                  }`}
+                >
+                  Decoder
+                </span>
+                <span
+                  title="Pricing Strategist (Mission 3 Complete)"
+                  className={`px-2 py-1 rounded-md text-[10px] font-bold border transition ${
+                    m3Complete
+                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/50'
+                      : 'bg-slate-900 text-slate-600 border-slate-800 opacity-40'
+                  }`}
+                >
+                  Strategist
+                </span>
+                <span
+                  title="Business Thinker (Mission 4 Complete)"
+                  className={`px-2 py-1 rounded-md text-[10px] font-bold border transition ${
+                    m4Complete
+                      ? 'bg-purple-500/20 text-purple-300 border-purple-500/50'
+                      : 'bg-slate-900 text-slate-600 border-slate-800 opacity-40'
+                  }`}
+                >
+                  Thinker
+                </span>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Main Mission Workspace */}
       <main className="max-w-7xl mx-auto p-4 sm:p-6 w-full flex-1 space-y-8 select-none">
@@ -514,57 +516,70 @@ export default function TeamMissionPage() {
           </span>
         </div>
 
-        {/* Top Section: Assigned Customer Profile & Mission Action Workspace */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Customer Profile Dossier */}
-          <div className="lg:col-span-5 space-y-4">
-            {profile && <CustomerProfileCard profile={profile} showBenchmark={false} />}
-          </div>
+        {/* When Round Has Not Started: Completely Hide All Data, Profiles, Charts & Questions */}
+        {isWaitingForTimer ? (
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 sm:p-16 text-center space-y-6 shadow-2xl">
+            <div className="inline-flex p-6 rounded-3xl bg-teal-500/10 border border-teal-500/30 text-teal-400">
+              <Lock className="w-16 h-16 animate-pulse" />
+            </div>
 
-          {/* Mission Action Card */}
-          <div className="lg:col-span-7 flex flex-col justify-between">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-            {/* Round Not Started Countdown Screen */}
-            {isWaitingForTimer ? (
-              <div className="py-12 px-4 text-center space-y-6">
-                <div className="inline-flex p-4 rounded-3xl bg-teal-500/10 border border-teal-500/30 text-teal-400">
-                  <Lock className="w-10 h-10 animate-pulse" />
-                </div>
+            <div className="space-y-2">
+              <span className="text-xs font-bold uppercase tracking-widest text-teal-400">
+                Synchronised Event Lockdown
+              </span>
+              <h2 className="text-2xl sm:text-4xl font-black text-white tracking-wide">
+                ROUND 1 HAS NOT STARTED YET
+              </h2>
+              <p className="text-sm text-slate-400 max-w-lg mx-auto leading-relaxed pt-2">
+                All competition datasets, customer profiles, market survey charts, and question missions are strictly sealed until the administrator officially begins the synchronised clock.
+              </p>
+            </div>
+
+            <div className="p-4 sm:p-6 rounded-2xl bg-slate-950 border border-slate-800 inline-block text-left shadow-inner">
+              <div className="flex items-center gap-3">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                </span>
                 <div>
-                  <h3 className="text-xl font-black text-white tracking-wide">
-                    ROUND 1 HAS NOT STARTED YET
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-2 max-w-md mx-auto leading-relaxed">
-                    The competition questions and market analysis form are strictly locked until the administrator officially starts the synchronised countdown clock.
-                  </p>
-                </div>
-                <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 inline-block">
-                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">
-                    System Status
+                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                    Live System Status
                   </div>
-                  <div className="text-sm font-mono font-bold text-amber-400 flex items-center justify-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-                    <span>STANDBY • WAITING FOR HOST TO START</span>
+                  <div className="text-sm font-mono font-bold text-amber-400">
+                    STANDBY • WAITING FOR HOST TO START TIMER
                   </div>
-                </div>
-                <div className="text-[11px] text-slate-500 max-w-sm mx-auto">
-                  💡 You may study your assigned customer profile on the left. The moment the clock starts, questions will unlock automatically.
                 </div>
               </div>
-            ) : (
-            <>
-            {/* Status locked banner if submitted */}
-            {isLocked && (
-              <div className="mb-6 p-4 rounded-xl bg-amber-950/40 border border-amber-500/40 text-amber-300 flex items-start gap-3">
-                <Lock className="w-5 h-5 shrink-0 mt-0.5 text-amber-400" />
-                <div>
-                  <h4 className="font-bold text-sm">Mission Locked & Submitted</h4>
-                  <p className="text-xs text-amber-400/80 mt-1">
-                    Your answers are officially locked in Supabase and queued for evaluation. If you require modifications due to a technical error, request edit approval from the Admin Control Centre.
-                  </p>
-                </div>
+            </div>
+
+            <div className="text-xs text-slate-500 max-w-md mx-auto">
+              ⏱️ Please keep this tab open and await instructions from the event coordinators. Your entire case dossier will unlock in real time.
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Top Section: Assigned Customer Profile & Mission Action Workspace */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* Customer Profile Dossier */}
+              <div className="lg:col-span-5 space-y-4">
+                {profile && <CustomerProfileCard profile={profile} showBenchmark={false} />}
               </div>
-            )}
+
+              {/* Mission Action Card */}
+              <div className="lg:col-span-7 flex flex-col justify-between">
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+                  {/* Status locked banner if submitted */}
+                  {isLocked && (
+                    <div className="mb-6 p-4 rounded-xl bg-amber-950/40 border border-amber-500/40 text-amber-300 flex items-start gap-3">
+                      <Lock className="w-5 h-5 shrink-0 mt-0.5 text-amber-400" />
+                      <div>
+                        <h4 className="font-bold text-sm">Mission Locked & Submitted</h4>
+                        <p className="text-xs text-amber-400/80 mt-1">
+                          Your answers are officially locked in Supabase and queued for evaluation. If you require modifications due to a technical error, request edit approval from the Admin Control Centre.
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
             {/* MISSION 01: Decode the Customer */}
             {activeMission === 'mission_01' && (
@@ -837,8 +852,6 @@ export default function TeamMissionPage() {
                 </div>
               </div>
             )}
-            </>
-            )}
           </div>
 
           {/* Submission Finalize Block */}
@@ -902,10 +915,12 @@ export default function TeamMissionPage() {
         </div>
         </div>
 
-        {/* Dedicated Full-Width Market Analytics Space for Uncompromised Readability */}
-        <div className="pt-2">
-          <SurveyChartsSection />
-        </div>
+            {/* Dedicated Full-Width Market Analytics Space for Uncompromised Readability */}
+            <div className="pt-2">
+              <SurveyChartsSection />
+            </div>
+          </>
+        )}
       </main>
 
       {/* Confirmation Modal */}
