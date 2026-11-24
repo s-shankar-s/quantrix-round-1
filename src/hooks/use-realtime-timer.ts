@@ -28,21 +28,15 @@ export function useRealtimeTimer(): UseRealtimeTimerReturn {
     } else if (currentTimer.status === 'completed') {
       setDisplaySeconds(0);
     } else if (currentTimer.status === 'running' && currentTimer.deadline_at) {
-      let left = 0;
-      if (currentTimer.server_time_reference) {
-        const serverRef = new Date(currentTimer.server_time_reference).getTime();
-        const deadline = new Date(currentTimer.deadline_at).getTime();
-        left = Math.max(0, Math.round((deadline - serverRef) / 1000));
-      } else {
-        const now = Date.now();
-        const deadline = new Date(currentTimer.deadline_at).getTime();
-        left = Math.max(0, Math.round((deadline - now) / 1000));
-      }
-
+      // Server-authoritative remaining time calculation:
+      // Compare deadline with the authoritative server reference time
+      const deadline = new Date(currentTimer.deadline_at).getTime();
+      const serverRef = currentTimer.server_time_reference
+        ? new Date(currentTimer.server_time_reference).getTime()
+        : Date.now();
+      
+      const left = Math.max(0, Math.round((deadline - serverRef) / 1000));
       setDisplaySeconds(left);
-      if (left <= 0 && currentTimer.status === 'running') {
-        syncFromServer();
-      }
     }
   };
 
@@ -55,15 +49,28 @@ export function useRealtimeTimer(): UseRealtimeTimerReturn {
         const newUpdatedAt = newTimer.updated_at ? new Date(newTimer.updated_at).getTime() : 0;
 
         // CRITICAL VERCEL SERVERLESS PROTECTION:
-        // If the client is already tracking an active 'running' round, ignore stale 'not_started'
-        // responses that come from un-warmed or cold serverless lambdas with older updated_at timestamps.
+        // On serverless hosting (Vercel), requests hit different isolated lambda containers.
+        // If an admin starts the timer, some containers may still hold the initial 'not_started' state.
+        // If the client has already observed a 'running' round, never revert to 'not_started'
+        // unless an explicit reset occurred (indicated by a newer updated_at timestamp).
         if (
           timerRef.current &&
           timerRef.current.status === 'running' &&
           newTimer.status === 'not_started' &&
           newUpdatedAt <= lastKnownServerUpdatedAtRef.current
         ) {
-          // Stale cold-start container response; keep active running timer intact
+          // Stale cold-start container response; keep running timer intact
+          return;
+        }
+
+        // If local client has a running timer and server reports 'completed',
+        // verify whether it genuinely completed based on updated_at or if it's an un-started container
+        if (
+          timerRef.current &&
+          timerRef.current.status === 'running' &&
+          newTimer.status === 'completed' &&
+          newUpdatedAt < lastKnownServerUpdatedAtRef.current
+        ) {
           return;
         }
 
