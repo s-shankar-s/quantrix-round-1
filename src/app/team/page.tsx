@@ -366,16 +366,11 @@ export default function TeamMissionPage() {
     window.location.href = '/login?role=team';
   };
 
-  // Word count helpers
-  const getWordCount = (str: string) => str.trim().split(/\s+/).filter(Boolean).length;
-  const q1Words = getWordCount(q1);
-  const q5Words = getWordCount(q5);
-
   // Mission Completion Logic
-  const m1Complete = !!(q1Words >= 15 && q2f1.trim() && q2f2.trim() && q2f3.trim());
+  const m1Complete = !!(q1.trim() && q2f1.trim() && q2f2.trim() && q2f3.trim());
   const m2Complete = !!q3.trim();
   const m3Complete = !!(q4.trim() && Number(q4) > 0);
-  const m4Complete = !!(q5Words >= 25);
+  const m4Complete = !!q5.trim();
 
   const completedCount = [m1Complete, m2Complete, m3Complete, m4Complete].filter(Boolean).length;
   const progressPercent = Math.round((completedCount / 4) * 100);
@@ -679,9 +674,6 @@ export default function TeamMissionPage() {
                       <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
                         Q1: Identify the Target Customer
                       </label>
-                      <span className={`text-[11px] font-mono ${q1Words >= 15 ? 'text-teal-400' : 'text-amber-400'}`}>
-                        {q1Words} / 15 words min
-                      </span>
                     </div>
                     <textarea
                       disabled={isLocked}
@@ -897,9 +889,6 @@ export default function TeamMissionPage() {
                       <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
                         Q5: Business Justification & Analytical Reasoning
                       </label>
-                      <span className={`text-[11px] font-mono ${q5Words >= 25 ? 'text-teal-400' : 'text-amber-400'}`}>
-                        {q5Words} / 25 words min
-                      </span>
                     </div>
                     <textarea
                       disabled={isLocked}
