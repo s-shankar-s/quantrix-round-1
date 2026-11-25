@@ -75,9 +75,8 @@ function initializeStore() {
     created_at: new Date().toISOString(),
   });
 
-  // Seed 30 Teams (Mapped to official registrations)
+  // Seed Exactly 23 Verified Registered Teams (Removing fake submissions and unused slots)
   const REGISTERED_TEAMS: { name: string; dept?: string; leader?: string; email?: string }[] = [
-    { name: 'MBA Boys', dept: 'MBA', leader: 'Harish', email: 'harish@tsm.ac.in' },
     { name: 'Team Groot', dept: 'PGDM', leader: 'Kowsini', email: 'Kowsini_2613074@tsm.ac.in' },
     { name: 'Infinity', dept: 'MBA', leader: 'Nirjitha S', email: 'nirjitha2628@tsm.ac.in' },
     { name: 'Prime Team', dept: 'MBA', leader: 'Soundharya sri B', email: 'soundharyab2628@tsm.ac.in' },
@@ -103,15 +102,15 @@ function initializeStore() {
     { name: 'Team ABC', dept: 'MBA', leader: 'Arun Balasubramanian', email: 'balaarun2628@tsm.ac.in' },
   ];
 
-  for (let i = 1; i <= 30; i++) {
+  for (let i = 1; i <= REGISTERED_TEAMS.length; i++) {
     const teamNum = i.toString().padStart(2, '0');
     const teamId = `team_${teamNum}`;
     const defaultPassword = `TeamPass@${teamNum}`;
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(defaultPassword, salt);
     const registered = REGISTERED_TEAMS[i - 1];
-    const teamDisplayName = registered ? `${registered.name} (Team ${teamNum})` : `Team ${teamNum}`;
-    const officialTeamName = registered ? registered.name : `Team ${teamNum}`;
+    const teamDisplayName = `${registered.name} (Team ${teamNum})`;
+    const officialTeamName = registered.name;
 
     global.__quantrix_users.set(teamId, {
       id: teamId,
