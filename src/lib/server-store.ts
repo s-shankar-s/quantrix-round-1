@@ -75,20 +75,50 @@ function initializeStore() {
     created_at: new Date().toISOString(),
   });
 
-  // Seed 30 Teams
+  // Seed 30 Teams (Mapped to official registrations)
+  const REGISTERED_TEAMS: { name: string; dept?: string; leader?: string; email?: string }[] = [
+    { name: 'MBA Boys', dept: 'MBA', leader: 'Harish', email: 'harish@tsm.ac.in' },
+    { name: 'Team Groot', dept: 'PGDM', leader: 'Kowsini', email: 'Kowsini_2613074@tsm.ac.in' },
+    { name: 'Infinity', dept: 'MBA', leader: 'Nirjitha S', email: 'nirjitha2628@tsm.ac.in' },
+    { name: 'Prime Team', dept: 'MBA', leader: 'Soundharya sri B', email: 'soundharyab2628@tsm.ac.in' },
+    { name: 'The innovators', dept: 'MBA', leader: 'Dhiwakar B', email: 'dhiwakar2628@tsm.ac.in' },
+    { name: "4 P's and a Q", dept: 'PGDM', leader: 'Harish L', email: 'harish_2613051@tsm.ac.in' },
+    { name: 'Deevishaya', dept: 'MBA', leader: 'Akshaya R', email: 'Akshaya2628@tsm.ac.in' },
+    { name: 'Enigmatic', dept: 'MBA', leader: 'Harish Srivathsan J K', email: 'srivathsan2628@tsm.ac.in' },
+    { name: 'Thanveer annan viluthugal', dept: 'PGDM', leader: 'Iswarya M C S', email: 'Iswaryasatmae@gmail.com' },
+    { name: 'Names', dept: 'PGDM', leader: 'Jathi Vignesh K', email: 'jathivignesh_2613057@tsm.ac.in' },
+    { name: 'Formula one', dept: 'PGDM', leader: 'Vaishnavi Ramanathan', email: 'Vaishnavir_2613135@tsm.ac.in' },
+    { name: 'Sriradhai', dept: 'PGDM', leader: 'Karishma', email: 'Karishma_26130641@tsm.ac.in' },
+    { name: 'NOTHING', dept: 'MBA', leader: 'Harish karthik', email: 'harishkarthick2628@tsm.ac.in' },
+    { name: 'Quantity Crew', dept: 'MBA', leader: 'Nivethitha T', email: 'nivethitha2628@tsm.ac.in' },
+    { name: 'Onli Loss', dept: 'MBA', leader: 'Akshya LS', email: 'akshayals2628@tsm.ac.in' },
+    { name: "D's Influence", dept: 'MBA', leader: 'S.Madhumitha', email: 'madhumitha2628@tsm.ac.in' },
+    { name: 'Titans', dept: 'MBA', leader: 'Iswarya S', email: 'iswarya2628@tsm.ac.in' },
+    { name: 'Moonu mandhiri', dept: 'MBA', leader: 'Naren Krishna R', email: 'narenkrishna2628@tsm.ac.in' },
+    { name: 'Gladiators', dept: 'MBA', leader: 'Prittika J', email: 'prittikaj2628@tsm.ac.in' },
+    { name: 'Deadly Trio', dept: 'MBA', leader: 'Arunachalam K', email: 'arunachalam2628@tsm.ac.in' },
+    { name: 'Team Elite', dept: 'MBA', leader: 'Mohammed Raiyan Alam N', email: 'raiyanalam2628@tsm.ac.in' },
+    { name: '3 hypothesis', dept: 'MBA', leader: 'Joe venish', email: 'joevenish2628@tsm.ac.in' },
+    { name: 'ABC', dept: 'PGDM', leader: 'Shreyasree Jeya Chitran', email: 'shreyasree_2613169@tsm.ac.in' },
+    { name: 'Team ABC', dept: 'MBA', leader: 'Arun Balasubramanian', email: 'balaarun2628@tsm.ac.in' },
+  ];
+
   for (let i = 1; i <= 30; i++) {
     const teamNum = i.toString().padStart(2, '0');
     const teamId = `team_${teamNum}`;
     const defaultPassword = `TeamPass@${teamNum}`;
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(defaultPassword, salt);
+    const registered = REGISTERED_TEAMS[i - 1];
+    const teamDisplayName = registered ? `${registered.name} (Team ${teamNum})` : `Team ${teamNum}`;
+    const officialTeamName = registered ? registered.name : `Team ${teamNum}`;
 
     global.__quantrix_users.set(teamId, {
       id: teamId,
       username: teamId,
       password_hash: hash,
       role: 'team',
-      display_name: `Team ${teamNum}`,
+      display_name: teamDisplayName,
       is_active: true,
       created_at: new Date().toISOString(),
     });
@@ -96,7 +126,7 @@ function initializeStore() {
     global.__quantrix_teams.set(teamId, {
       team_id: teamId,
       team_number: i,
-      team_name: `Team ${teamNum}`,
+      team_name: officialTeamName,
       assigned_profile_id: i,
       login_status: 'offline',
     });
