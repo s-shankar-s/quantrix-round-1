@@ -104,6 +104,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, message: `AI penalty for team ${targetId} reset by administrator.` });
     }
 
+    if (action === 'full_reset_game') {
+      serverStore.fullResetGame(session.userId);
+      return NextResponse.json({ success: true, message: 'Full game reset complete. All game state has been cleared.' });
+    }
+
     return NextResponse.json({ success: false, message: 'Unknown action' }, { status: 400 });
   } catch (err: any) {
     return NextResponse.json({ success: false, message: err.message || 'Server error' }, { status: 500 });

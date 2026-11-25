@@ -1281,6 +1281,46 @@ ${buildWorksheetXml('4. Anti-AI Security Logs', intHeaders, intRows)}
                       <span>Reset Timer</span>
                     </button>
                   </div>
+
+                  {/* ── Danger Zone: Full Game Reset ── */}
+                  <div className="mt-6 pt-5 border-t border-rose-900/50">
+                    <p className="text-xs text-rose-400 font-semibold mb-3 uppercase tracking-wider">⚠ Danger Zone</p>
+                    <button
+                      onClick={async () => {
+                        if (
+                          !window.confirm(
+                            '⚠️ FULL GAME RESET\n\nThis will permanently erase:\n• All team submissions & drafts\n• Timer state\n• All evaluations & scores\n• All integrity / telemetry logs\n• All audit logs\n• All penalty records\n\nTeam accounts and passwords are NOT affected.\n\nThis CANNOT be undone. Continue?'
+                          )
+                        )
+                          return;
+                        if (!window.confirm('Final confirmation — press OK to wipe ALL game data and restart from scratch.'))
+                          return;
+                        setActionMessage('');
+                        setActionError('');
+                        try {
+                          const res = await fetch('/api/admin', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'full_reset_game' }),
+                          });
+                          const d = await res.json();
+                          if (d.success) {
+                            setActionMessage('✅ Full game reset complete. All game data has been cleared. Ready for a fresh round.');
+                            fetchAdminData();
+                          } else {
+                            setActionError(d.message || 'Full game reset failed');
+                          }
+                        } catch {
+                          setActionError('Network error during full game reset');
+                        }
+                      }}
+                      className="px-5 py-2.5 bg-rose-800 hover:bg-rose-700 active:bg-rose-900 text-white rounded-lg text-xs font-bold flex items-center gap-2 border border-rose-600 shadow-lg transition-colors"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      Full Game Reset (Wipe All Data)
+                    </button>
+                    <p className="text-xs text-slate-500 mt-2">Resets timer, all submissions, evaluations, telemetry &amp; audit logs. Teams keep their login credentials.</p>
+                  </div>
                 </div>
               </div>
 

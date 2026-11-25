@@ -1078,4 +1078,83 @@ export const serverStore = {
     initializeStore();
     return Array.from(global.__quantrix_sync_queue.values()).filter((r) => r.status === 'failed');
   },
+
+  // ─── Full Game Reset ───────────────────────────────────────────────────────
+  fullResetGame: (actorId?: string): void => {
+    initializeStore();
+    const now = new Date().toISOString();
+
+    // 1. Reset timer to pristine not_started state
+    global.__quantrix_timer = {
+      id: 1,
+      status: 'not_started',
+      duration_seconds: 720,
+      started_at: null,
+      deadline_at: null,
+      remaining_seconds_on_pause: 720,
+      server_time_reference: now,
+      updated_at: now,
+    };
+
+    // 2. Reset every team's submission and mission progress
+    global.__quantrix_teams.forEach((_, teamId) => {
+      global.__quantrix_submissions.set(teamId, {
+        id: `sub_${teamId}`,
+        team_id: teamId,
+        q1_target_customer: '',
+        q2_factor_1: '',
+        q2_factor_2: '',
+        q2_factor_3: '',
+        q3_survey_top_price_range: '',
+        q4_recommended_price: null,
+        q5_price_justification: '',
+        status: 'not_started',
+        is_auto_submitted: false,
+        last_saved_at: now,
+        submitted_at: null,
+        edit_permitted: false,
+        edit_approved_by: null,
+        edit_reason: null,
+        mission_progress: {
+          mission_01_complete: false,
+          mission_02_complete: false,
+          mission_03_complete: false,
+          mission_04_complete: false,
+          badges_earned: [],
+        },
+      });
+      global.__quantrix_mission_progress.set(teamId, {
+        mission_01_complete: false,
+        mission_02_complete: false,
+        mission_03_complete: false,
+        mission_04_complete: false,
+        badges_earned: [],
+      });
+    });
+
+    // 3. Wipe all telemetry, evaluations, audit logs, revisions, penalties, sync queue
+    global.__quantrix_evaluations = new Map();
+    global.__quantrix_integrity = [];
+    global.__quantrix_audit_logs = [];
+    global.__quantrix_revisions = [];
+    global.__quantrix_ai_penalty_resets = new Set();
+    global.__quantrix_sync_queue = new Map();
+
+    // 4. Reset evaluation config
+    global.__quantrix_eval_config = {
+      id: 1,
+      is_open: false,
+      scheduled_open_at: null,
+      scheduled_close_at: null,
+      scoring_mode: 'panel_common',
+      lead_judge_id: 'judge_01',
+      results_published: false,
+      published_at: null,
+      published_by: null,
+      updated_at: now,
+    };
+
+    // 5. Write a single audit entry AFTER clearing logs so it's the first entry
+    serverStore.logAuditAction(actorId || 'admin', 'admin', 'FULL_GAME_RESET', 'system', 'all');
+  },
 };
